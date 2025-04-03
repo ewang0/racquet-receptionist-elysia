@@ -6,7 +6,10 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "dotenv": "^16.4.7",
+    "elysia": "latest",
+    "puppeteer": "^24.5.0",
+    "twilio": "^5.5.1"
   },
   "devDependencies": {
     "bun-types": "latest"
