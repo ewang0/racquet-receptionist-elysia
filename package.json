@@ -6,10 +6,21 @@
     "dev": "bun run --watch src/index.ts"
   },
   "dependencies": {
-    "elysia": "latest"
+    "@supabase/supabase-js": "^2.49.4",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.41.0",
+    "elysia": "latest",
+    "node-cron": "^3.0.3",
+    "pg": "^8.14.1",
+    "postgres": "^3.4.5",
+    "puppeteer": "^24.5.0",
+    "twilio": "^5.5.1"
   },
   "devDependencies": {
-    "bun-types": "latest"
+    "@types/node-cron": "^3.0.11",
+    "@types/pg": "^8.11.11",
+    "bun-types": "latest",
+    "drizzle-kit": "^0.30.6"
   },
   "module": "src/index.js"
 }
