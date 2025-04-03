@@ -1,11 +1,8 @@
 import puppeteer from 'puppeteer';
 
-export type CourtAvailability = {
-  time: string;
-  info: string;
-};
+export type CourtAvailabilityMap = Record<string, number>;
 
-export const scrapeCourtAvailability = async (): Promise<CourtAvailability[]> => {
+export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> => {
   console.log('Starting browser...');
   const browser = await puppeteer.launch();
   
@@ -30,7 +27,7 @@ export const scrapeCourtAvailability = async (): Promise<CourtAvailability[]> =>
   }, { timeout: 10000 });
 
   console.log('Extracting court availability data...');
-  const availability = await page.evaluate(() => {
+  const rawAvailability = await page.evaluate(() => {
     // Use more resilient selectors that rely on structure rather than exact class names
     const items = Array.from(
       document.querySelectorAll('ol[class*="BookingItemPicker"][class*="sessions-list"] > li')
@@ -55,7 +52,28 @@ export const scrapeCourtAvailability = async (): Promise<CourtAvailability[]> =>
   console.log('Closing browser...');
   await browser.close();
   
+  console.log('Processing availability data...');
+  
+  // Convert to key-value pairs and filter out unknown entries
+  const availabilityMap: CourtAvailabilityMap = {};
+  
+  for (const item of rawAvailability) {
+    // Skip entries with unknown time
+    if (item.time === 'Unknown time') continue;
+    
+    // Extract number of courts using regex
+    const courtMatch = item.info.match(/(\d+)\s+open\s+court/);
+    if (courtMatch && courtMatch[1]) {
+      const numCourts = parseInt(courtMatch[1], 10);
+      availabilityMap[item.time] = numCourts;
+    }
+  }
+  
   console.log('Scraping complete!');
-  return availability;
+  return availabilityMap;
 };
 
+scrapeCourtAvailability().then((availability) => {
+  console.log('Court availability data:');
+  console.log(JSON.stringify(availability, null, 2));
+});
