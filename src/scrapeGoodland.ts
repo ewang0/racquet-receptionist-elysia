@@ -1,18 +1,10 @@
-import puppeteer from 'puppeteer-core';
-import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer';
 
 export type CourtAvailabilityMap = Record<string, number>;
 
 export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> => {
   console.log('Starting browser...');
-  
-  // Configure browser with @sparticuz/chromium
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
-  });
+  const browser = await puppeteer.launch();
   
   console.log('Opening new page...');
   const page = await browser.newPage();
@@ -80,8 +72,3 @@ export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> =
   console.log('Scraping complete!');
   return availabilityMap;
 };
-
-scrapeCourtAvailability().then((availability) => {
-  console.log('Court availability data:');
-  console.log(JSON.stringify(availability, null, 2));
-});
