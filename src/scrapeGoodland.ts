@@ -1,19 +1,33 @@
 import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
 
 export type CourtAvailabilityMap = Record<string, number>;
 
 export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> => {
   console.log('Starting browser...');
-  const browser = await puppeteer.launch();
+  
+  // Configure Puppeteer for serverless environment
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: true, // or chromium.headless
+   });
   
   console.log('Opening new page...');
   const page = await browser.newPage();
+
+  // Set a reasonable navigation timeout
+  page.setDefaultNavigationTimeout(30000);
+  page.setDefaultTimeout(30000);
 
   // Navigate to the booking page
   console.log('Navigating to booking page...');
   const today = new Date();
   const formattedDate = today.toISOString().split('T')[0]; // Gets YYYY-MM-DD format
-  await page.goto(`https://goodland.podplay.app/book/greenpoint-indoor-1/${formattedDate}`);
+  await page.goto(`https://goodland.podplay.app/book/greenpoint-indoor-1/${formattedDate}`, {
+    waitUntil: 'networkidle2'
+  });
 
   // Wait for court list to appear
   await page.waitForSelector('ol[class*="BookingItemPicker"][class*="sessions-list"]');
@@ -24,7 +38,7 @@ export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> =
     // Check if we have items and if they have the expected content
     return items.length > 0 && 
            items[0].querySelector('div[class*="sessions-list-item-time"]')?.textContent?.trim() !== '';
-  }, { timeout: 10000 });
+  }, { timeout: 15000 });
 
   console.log('Extracting court availability data...');
   const rawAvailability = await page.evaluate(() => {

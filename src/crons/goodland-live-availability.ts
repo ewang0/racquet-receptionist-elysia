@@ -44,17 +44,24 @@ async function runCourtAvailabilityCron() {
     console.log('Court availability data successfully updated in the database');
   } catch (error) {
     console.error('Error in court availability cron job:', error);
-    process.exit(1);
+    // Don't exit the process in serverless environment
+    throw error;
   }
 }
 
-// Run the cron job
-runCourtAvailabilityCron()
-  .then(() => {
-    console.log('Cron job completed successfully');
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error('Unhandled error in cron job:', error);
-    process.exit(1);
-  }); 
+// Export the function for serverless execution
+export default runCourtAvailabilityCron;
+
+// If running directly (not imported), execute the function
+if (require.main === module) {
+  runCourtAvailabilityCron()
+    .then(() => {
+      console.log('Cron job completed successfully');
+      // Only exit if running directly
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('Unhandled error in cron job:', error);
+      process.exit(1);
+    });
+} 
