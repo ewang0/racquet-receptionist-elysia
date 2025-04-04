@@ -1,10 +1,18 @@
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
 export type CourtAvailabilityMap = Record<string, number>;
 
 export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> => {
   console.log('Starting browser...');
-  const browser = await puppeteer.launch();
+  
+  // Configure browser with @sparticuz/chromium
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+  });
   
   console.log('Opening new page...');
   const page = await browser.newPage();
