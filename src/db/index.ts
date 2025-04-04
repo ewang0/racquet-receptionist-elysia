@@ -1,10 +1,21 @@
-import "dotenv/config";
-import { drizzle } from "drizzle-orm/postgres-js";
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+import dotenv from 'dotenv';
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL is not defined");
+// Load environment variables
+dotenv.config();
+
+// Get database connection string from environment variables
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error('DATABASE_URL environment variable is required');
 }
 
-const db = drizzle(process.env.DATABASE_URL);
+// Create a PostgreSQL connection pool
+const pool = new Pool({
+  connectionString,
+});
 
-export { db };
+// Create a Drizzle instance
+export const db = drizzle(pool);
