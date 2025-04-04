@@ -7,6 +7,7 @@
     "goodland-cron": "bun run src/scripts/goodland-live-availability.ts"
   },
   "dependencies": {
+    "@sparticuz/chromium": "^133.0.0",
     "@supabase/supabase-js": "^2.49.4",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.41.0",
