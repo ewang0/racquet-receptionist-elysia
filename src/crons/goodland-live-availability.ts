@@ -49,19 +49,13 @@ async function runCourtAvailabilityCron() {
   }
 }
 
-// Export the function for serverless execution
-export default runCourtAvailabilityCron;
-
-// If running directly (not imported), execute the function
-if (require.main === module) {
-  runCourtAvailabilityCron()
-    .then(() => {
-      console.log('Cron job completed successfully');
-      // Only exit if running directly
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('Unhandled error in cron job:', error);
-      process.exit(1);
-    });
-} 
+// Run the script
+runCourtAvailabilityCron()
+  .then(() => {
+    console.log('Cron job completed successfully');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Unhandled error in cron job:', error);
+    process.exit(1);
+  });
