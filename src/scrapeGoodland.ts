@@ -1,30 +1,40 @@
-import puppeteer from 'puppeteer';
+import { chromium } from 'playwright';
 
 export type CourtAvailabilityMap = Record<string, number>;
 
 export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> => {
   console.log('Starting browser...');
-  const browser = await puppeteer.launch();
+  
+  // Launch Playwright browser
+  const browser = await chromium.launch({
+    headless: true,
+  });
   
   console.log('Opening new page...');
-  const page = await browser.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+
+  // Set a reasonable navigation timeout
+  page.setDefaultTimeout(30000);
 
   // Navigate to the booking page
   console.log('Navigating to booking page...');
   const today = new Date();
   const formattedDate = today.toISOString().split('T')[0]; // Gets YYYY-MM-DD format
-  await page.goto(`https://goodland.podplay.app/book/greenpoint-indoor-1/${formattedDate}`);
+  await page.goto(`https://goodland.podplay.app/book/greenpoint-indoor-1/${formattedDate}`, {
+    waitUntil: 'networkidle',
+  });
 
   // Wait for court list to appear
   await page.waitForSelector('ol[class*="BookingItemPicker"][class*="sessions-list"]');
   
-  // Instead of a fixed timeout, wait for content to be ready
+  // Wait for content to be ready
   await page.waitForFunction(() => {
     const items = document.querySelectorAll('ol[class*="BookingItemPicker"][class*="sessions-list"] > li');
     // Check if we have items and if they have the expected content
     return items.length > 0 && 
            items[0].querySelector('div[class*="sessions-list-item-time"]')?.textContent?.trim() !== '';
-  }, { timeout: 10000 });
+  }, { timeout: 15000 });
 
   console.log('Extracting court availability data...');
   const rawAvailability = await page.evaluate(() => {
@@ -72,3 +82,9 @@ export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> =
   console.log('Scraping complete!');
   return availabilityMap;
 };
+
+// Run the script
+scrapeCourtAvailability().then((availability) => {
+  console.log('Court availability data:');
+  console.log(JSON.stringify(availability, null, 2));
+});
