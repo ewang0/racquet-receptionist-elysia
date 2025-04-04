@@ -17,29 +17,18 @@ async function runCourtAvailabilityCron() {
     
     console.log('Scraped data:', availabilityData);
     
-    // Process and store each time slot's availability
-    const insertPromises = Object.entries(availabilityData).map(async ([time, availableCourts]) => {
-      // Check if this time slot already exists in the database
-      const existingRecords = await db.select()
-        .from(courtAvailability)
-        .where(eq(courtAvailability.time, time));
-      
-      if (existingRecords.length > 0) {
-        // Update existing record
-        console.log(`Updating availability for time: ${time}`);
-        return db.update(courtAvailability)
-          .set({ availableCourts })
-          .where(eq(courtAvailability.time, time));
-      } else {
-        // Insert new record
-        console.log(`Inserting new availability for time: ${time}`);
-        return db.insert(courtAvailability)
-          .values({ time, availableCourts });
-      }
+    // First, delete all existing records from the table
+    console.log('Clearing existing court availability data...');
+    await db.delete(courtAvailability);
+    
+    // Prepare all new records for insertion
+    const newRecords = Object.entries(availabilityData).map(([time, availableCourts]) => {
+      return { time, availableCourts };
     });
     
-    // Wait for all database operations to complete
-    await Promise.all(insertPromises);
+    // Insert all new records in a single operation
+    console.log(`Inserting ${newRecords.length} new availability records...`);
+    await db.insert(courtAvailability).values(newRecords);
     
     console.log('Court availability data successfully updated in the database');
   } catch (error) {
