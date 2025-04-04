@@ -1,24 +1,20 @@
-import puppeteer from 'puppeteer';
-import chromium from '@sparticuz/chromium';
+import { chromium } from 'playwright';
 
 export type CourtAvailabilityMap = Record<string, number>;
 
 export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> => {
   console.log('Starting browser...');
   
-  // Configure Puppeteer for serverless environment
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: await chromium.executablePath(),
-    headless: true, // or chromium.headless
-   });
+  // Launch Playwright browser
+  const browser = await chromium.launch({
+    headless: true,
+  });
   
   console.log('Opening new page...');
-  const page = await browser.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
 
   // Set a reasonable navigation timeout
-  page.setDefaultNavigationTimeout(30000);
   page.setDefaultTimeout(30000);
 
   // Navigate to the booking page
@@ -26,13 +22,13 @@ export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> =
   const today = new Date();
   const formattedDate = today.toISOString().split('T')[0]; // Gets YYYY-MM-DD format
   await page.goto(`https://goodland.podplay.app/book/greenpoint-indoor-1/${formattedDate}`, {
-    waitUntil: 'networkidle2'
+    waitUntil: 'networkidle',
   });
 
   // Wait for court list to appear
   await page.waitForSelector('ol[class*="BookingItemPicker"][class*="sessions-list"]');
   
-  // Instead of a fixed timeout, wait for content to be ready
+  // Wait for content to be ready
   await page.waitForFunction(() => {
     const items = document.querySelectorAll('ol[class*="BookingItemPicker"][class*="sessions-list"] > li');
     // Check if we have items and if they have the expected content
@@ -86,3 +82,9 @@ export const scrapeCourtAvailability = async (): Promise<CourtAvailabilityMap> =
   console.log('Scraping complete!');
   return availabilityMap;
 };
+
+// Run the script
+scrapeCourtAvailability().then((availability) => {
+  console.log('Court availability data:');
+  console.log(JSON.stringify(availability, null, 2));
+});
