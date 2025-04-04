@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 import { scrapeCourtAvailability } from '../scrapeGoodland';
 import { db } from '../db';
 import { courtAvailability } from '../db/schema';
-import { eq } from 'drizzle-orm';
 
 // Load environment variables
 dotenv.config();

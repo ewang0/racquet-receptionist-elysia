@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import { scrapeCourtAvailability } from './scrapeGoodland';
 import { Twilio } from "twilio";
 import { t } from "elysia";
+import { db } from './db';
+import { courtAvailability } from './db/schema';
 
 // Load environment variables
 dotenv.config();
@@ -37,28 +39,28 @@ const app = new Elysia()
   // Court availability endpoint
   .post("/goodland/court-availability", async () => {
     try {
-      console.log('Testing court availability scraping...');
-      const liveAvailability = await scrapeCourtAvailability();
+      console.log('Fetching court availability from database...');
+      const availabilityData = await db.select().from(courtAvailability);
       
       const responseData: SuccessResponse = {
-        intent: "court_availability_test",
+        intent: "court_availability",
         data: {
-          liveAvailability: liveAvailability
+          availability: availabilityData
         },
-        context: "This is a test endpoint for court availability scraping."
+        context: "Court availability data retrieved from database."
       };
      
       console.log("responseData:", responseData);
       return responseData;
     } catch (error: unknown) {
-      console.error('Error fetching live court availability:', error);
+      console.error('Error fetching court availability from database:', error);
       
       const responseData: ErrorResponse = {
         intent: "error",
         data: {
           error: error instanceof Error ? error.message : 'Unknown error occurred'
         },
-        context: "An error occurred while testing court availability scraping."
+        context: "An error occurred while fetching court availability from database."
       };
       
       return new Response(JSON.stringify(responseData), {
