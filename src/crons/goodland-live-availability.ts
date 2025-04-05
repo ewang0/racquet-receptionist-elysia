@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { scrapeCourtAvailability } from '../scrapeGoodland';
+import { scrapeCourtAvailability } from '../scrapers/goodland';
 import { db } from '../db';
 import { courtAvailability } from '../db/schema';
 
@@ -21,9 +21,18 @@ async function runCourtAvailabilityCron() {
     await db.delete(courtAvailability);
     
     // Prepare all new records for insertion
-    const newRecords = Object.entries(availabilityData).map(([time, availableCourts]) => {
-      return { time, availableCourts };
-    });
+    const newRecords = [];
+    
+    // Process the nested structure of availabilityData
+    for (const [date, timesMap] of Object.entries(availabilityData)) {
+      for (const [time, availableCourts] of Object.entries(timesMap)) {
+        newRecords.push({
+          date,
+          time,
+          availableCourts,
+        });
+      }
+    }
     
     // Insert all new records in a single operation
     console.log(`Inserting ${newRecords.length} new availability records...`);
