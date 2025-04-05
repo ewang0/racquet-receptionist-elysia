@@ -1,6 +1,5 @@
 import { Elysia } from "elysia";
 import dotenv from 'dotenv';
-import { scrapeCourtAvailability } from './scrapeGoodland';
 import { Twilio } from "twilio";
 import { t } from "elysia";
 import { db } from './db';
